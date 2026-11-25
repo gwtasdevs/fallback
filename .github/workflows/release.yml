@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v5
+        id: release
+
+  build:
+    needs: release-please
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name || github.sha }}
+
+      - name: Build & Upload (debug)
+        if: ${{ !needs.release-please.outputs.release_created }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+        run: |
+          cargo build
+          TAG="debug-${SHA:0:7}"
+          gh release create "$TAG" "./target/i686-pc-windows-msvc/debug/fallback.dll" \
+            --title "$TAG" \
+            --notes "Debug build for commit $SHA" \
+            --prerelease \
+            --target "$SHA"
+
+      - name: Build & Upload (release)
+        if: ${{ needs.release-please.outputs.release_created }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          cargo build --release
+          gh release upload "$TAG" "./target/i686-pc-windows-msvc/release/fallback.dll" --clobber

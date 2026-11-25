@@ -1,0 +1,23 @@
+name: Tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Code Format Check
+        run: cargo fmt --check
+
+      - name: Code Quality Check
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Test
+        run: cargo test
