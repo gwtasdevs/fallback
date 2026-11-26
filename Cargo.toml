@@ -35,7 +35,7 @@ tokio-util = "0.7"
 tree-sitter = "0.27"
 tree-sitter-lua = "0.5"
 uuid = { version = "1", features = ["v4"] }
-windows-core = "0.62"
+windows-core = "0.100"
 
 [dependencies.windows]
 version = "0.62"
