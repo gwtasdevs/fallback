@@ -1,0 +1,52 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  format:
+    name: Code Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Check code format
+        run: cargo fmt --check
+
+  quality:
+    name: Code Quality
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Exclude workspace from Windows Defender
+        shell: pwsh
+        run: Add-MpPreference -ExclusionPath "${{ github.workspace }}"
+
+      - name: Cache dependencies
+        uses: swatinem/rust-cache@v2
+
+      - name: Check code quality
+        run: cargo clippy --all-targets -- -D warnings
+
+  test:
+    name: Tests
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Exclude workspace from Windows Defender
+        shell: pwsh
+        run: Add-MpPreference -ExclusionPath "${{ github.workspace }}"
+
+      - name: Cache dependencies
+        uses: swatinem/rust-cache@v2
+
+      - name: Run tests
+        run: cargo test

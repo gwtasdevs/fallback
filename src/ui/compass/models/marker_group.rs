@@ -77,18 +77,18 @@ impl MarkerGroup {
             log::error!(
               "Couldn't parse '{}' definition in script for marker group: {:?}",
               Self::ROOT_NAME,
-              &path
+              path
             );
           }
         } else {
           log::error!(
             "Couldn't find '{}' definition in script for marker group: {:?}",
             Self::ROOT_NAME,
-            &path
+            path
           );
         }
       } else {
-        log::error!("Couldn't load script for marker group: {:?}", &path);
+        log::error!("Couldn't load script for marker group: {:?}", path);
       }
     }
 

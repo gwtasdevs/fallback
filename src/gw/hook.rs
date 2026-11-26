@@ -36,7 +36,7 @@ impl Hook<'_> {
           let reg = &*reg;
 
           if let Ok(hooks) = hooks_ref.read() {
-            for (_id, func) in hooks.iter() {
+            for func in hooks.values() {
               func(reg);
             }
           } else {
