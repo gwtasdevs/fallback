@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/gwtasdevs/fallback/compare/fallback-v0.2.0...fallback-v0.2.1) (2026-11-26)
+
+
+### Bug Fixes
+
+* remove debug releases ([#44](https://github.com/gwtasdevs/fallback/issues/44)) ([51deab5](https://github.com/gwtasdevs/fallback/commit/51deab59b155b982b8cf19f8f0cb1cbaee427ba3))
+
 ## [0.2.0](https://github.com/gwtasdevs/fallback/compare/fallback-v0.1.0...fallback-v0.2.0) (2026-11-26)
 
 
