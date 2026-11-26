@@ -13,6 +13,7 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     outputs:
+      body: ${{ steps.release.outputs.body }}
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
@@ -32,11 +33,13 @@ jobs:
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created }}
     runs-on: windows-latest
+    permissions:
+      attestations: write
+      contents: write
+      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
-        with:
-          ref: ${{ needs.release-please.outputs.tag_name || github.sha }}
 
       - name: Exclude workspace from Windows Defender
         shell: pwsh
@@ -45,19 +48,22 @@ jobs:
       - name: Cache Dependencies
         uses: swatinem/rust-cache@v2
 
-      - name: Build & Upload
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.release-please.outputs.tag_name }}
-        run: |
-          cargo build --release
-          gh release upload "$TAG" "./target/i686-pc-windows-msvc/release/fallback.dll" --clobber
-          gh release edit "$TAG" --draft=false
+      - name: Build
+        run: cargo build --release
 
-      - name: Delete failed release
+      - name: Attest artifacts
+        uses: actions/attest@v4
+        with:
+          subject-path: "./target/i686-pc-windows-msvc/release/fallback.dll"
+
+      - name: Create release
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.release-please.outputs.tag_name }}
-        run: gh release delete "$TAG" --yes
+          NOTES: ${{ needs.release-please.outputs.body }}
+        run: |
+          gh release create "$TAG" "./target/i686-pc-windows-msvc/release/fallback.dll" \
+            --target "${{ github.sha }}" \
+            --title "$TAG" \
+            --notes "$NOTES"
