@@ -5,17 +5,21 @@ on:
     branches: [main]
 
 permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release-please:
     runs-on: ubuntu-latest
     outputs:
-      body: ${{ steps.release.outputs.body }}
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/create-github-app-token@v3
         id: app-token
@@ -28,7 +32,6 @@ jobs:
         with:
           token: ${{ steps.app-token.outputs.token }}
 
-
   build:
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created }}
@@ -37,9 +40,13 @@ jobs:
       attestations: write
       contents: write
       id-token: write
+    env:
+      TAG: ${{ needs.release-please.outputs.tag_name }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
 
       - name: Exclude workspace from Windows Defender
         shell: pwsh
@@ -49,7 +56,7 @@ jobs:
         uses: swatinem/rust-cache@v2
 
       - name: Build
-        run: cargo build --release
+        run: cargo build --locked --release
 
       - name: Attest artifacts
         uses: actions/attest@v4
@@ -60,10 +67,15 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.release-please.outputs.tag_name }}
-          NOTES: ${{ needs.release-please.outputs.body }}
+          TAG: ${{ env.TAG }}
         run: |
-          gh release create "$TAG" "./target/i686-pc-windows-msvc/release/fallback.dll" \
-            --target "${{ github.sha }}" \
-            --title "$TAG" \
-            --notes "$NOTES"
+          gh release upload "$TAG" "./target/i686-pc-windows-msvc/release/fallback.dll"
+          gh release edit "$TAG" --draft=false
+
+      - name: Cleanup after failure
+        if: ${{ failure() }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ env.TAG }}
+        run: gh release delete "$TAG" --cleanup-tag --yes
