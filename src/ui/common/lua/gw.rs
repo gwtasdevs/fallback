@@ -262,7 +262,6 @@ lua!(|gw_api: Arc<Gw>| {
       reapply_title = async || -> Result<()> {
         if let Some(title) = gw_api.player.get_active_title() {
           gw_api.player.remove_active_title();
-          // tokio::time::sleep(Duration::from_millis(50)).await;
           gw_api.player.set_active_title(title);
         }
         Ok(())

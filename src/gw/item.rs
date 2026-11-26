@@ -55,7 +55,7 @@ impl Item {
   }
 
   pub fn get_item_by_id(&self, item_id: u32) -> Option<*const models::item::Item> {
-    read_ptr!(self.thread.get_game_context(), .item.items[item_id as usize])
+    read_ptr!(self.thread.get_game_context(), .item.items[item_id])
   }
 
   pub fn get_hovered_item(&self) -> Option<*const models::item::Item> {
