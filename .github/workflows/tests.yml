@@ -13,6 +13,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
+      - name: Exclude workspace from Windows Defender
+        shell: pwsh
+        run: Add-MpPreference -ExclusionPath "${{ github.workspace }}"
+
+      - name: Cache Dependencies
+        uses: swatinem/rust-cache@v2
+
       - name: Code Format Check
         run: cargo fmt --check
 

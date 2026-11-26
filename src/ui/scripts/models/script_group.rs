@@ -84,18 +84,18 @@ impl ScriptGroup {
             log::error!(
               "Couldn't parse '{}' definition in script group: {:?}",
               Self::ROOT_NAME,
-              &path
+              path
             );
           }
         } else {
           log::error!(
             "Couldn't find '{}' definition in script group: {:?}",
             Self::ROOT_NAME,
-            &path
+            path
           );
         }
       } else {
-        log::error!("Couldn't load script group: {:?}", &path);
+        log::error!("Couldn't load script group: {:?}", path);
       }
     }
 

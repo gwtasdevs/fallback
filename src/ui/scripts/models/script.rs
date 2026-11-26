@@ -55,13 +55,13 @@ impl Script {
           if let Ok(script) = Self::from_table(lua.clone(), &table, path.clone(), name.clone()) {
             return script;
           } else {
-            log::error!("Couldn't parse '{}' definition in script: {:?}", Self::ROOT_NAME, &path);
+            log::error!("Couldn't parse '{}' definition in script: {:?}", Self::ROOT_NAME, path);
           }
         } else {
-          log::error!("Couldn't find '{}' definition in script: {:?}", Self::ROOT_NAME, &path);
+          log::error!("Couldn't find '{}' definition in script: {:?}", Self::ROOT_NAME, path);
         }
       } else {
-        log::error!("Couldn't load script: {:?}", &path);
+        log::error!("Couldn't load script: {:?}", path);
       }
     }
 

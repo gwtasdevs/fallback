@@ -28,6 +28,13 @@ jobs:
         with:
           ref: ${{ needs.release-please.outputs.tag_name || github.sha }}
 
+      - name: Exclude workspace from Windows Defender
+        shell: pwsh
+        run: Add-MpPreference -ExclusionPath "${{ github.workspace }}"
+
+      - name: Cache Dependencies
+        uses: swatinem/rust-cache@v2
+
       - name: Build & Upload (debug)
         if: ${{ !needs.release-please.outputs.release_created }}
         shell: bash
