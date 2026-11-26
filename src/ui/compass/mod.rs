@@ -492,17 +492,6 @@ impl Module for Compass {
 
       ui.text("No settings available.");
 
-      // if ui.slider("Scale", 0., 1000., &mut config.compass.size) {
-      //   config_changed = true;
-      // }
-
-      // if ui.slider("X", 0., 5000., &mut config.compass.position[0]) {
-      //   config_changed = true;
-      // }
-      // if ui.slider("Y", 0., 3000., &mut config.compass.position[1]) {
-      //   config_changed = true;
-      // }
-
       ui.unindent();
     }
 

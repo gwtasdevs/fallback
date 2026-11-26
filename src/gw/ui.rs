@@ -98,10 +98,10 @@ impl Ui {
   }
 
   pub fn try_get_decoded_string(&self, encoded_string: *const u16) -> Option<String> {
-    if let Some(encoded_string) = self.try_clone_encoded_string(encoded_string)
-      && let Ok(cache) = self.encoded_string_cache.lock()
-    {
-      if let Some(cached) = cache.get(&encoded_string) {
+    if let Some(encoded_string) = self.try_clone_encoded_string(encoded_string) {
+      if let Ok(cache) = self.encoded_string_cache.lock()
+        && let Some(cached) = cache.get(&encoded_string)
+      {
         return cached.clone();
       }
 
@@ -128,10 +128,9 @@ impl Ui {
       }
 
       // decode requested, but we do not have the result yet, so return None for now
-      None
-    } else {
-      None
     }
+
+    None
   }
 
   pub async fn decode_string(&self, encoded_string: Vec<u16>) -> Option<String> {
