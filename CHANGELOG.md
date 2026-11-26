@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/gwtasdevs/fallback/compare/fallback-v0.4.0...fallback-v0.4.1) (2026-11-26)
+
+
+### Bug Fixes
+
+* **gw/player:** use correct packets for changing title ([#52](https://github.com/gwtasdevs/fallback/issues/52)) ([fc54c95](https://github.com/gwtasdevs/fallback/commit/fc54c956a618f70974f46fbe96e72344dceb66ce))
+
 ## [0.4.0](https://github.com/gwtasdevs/fallback/compare/fallback-v0.3.0...fallback-v0.4.0) (2026-11-26)
 
 
