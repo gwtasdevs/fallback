@@ -94,7 +94,7 @@ pub fn update_lua_values<F: Fn(&str) -> Result<String>>(
 
   if let Some(query_match) = query_matches.next()
     && let Some(capture) = query_match
-      .captures
+      .captures()
       .iter()
       .find(|capture| capture.index == table_node_index)
   {
@@ -117,11 +117,11 @@ pub fn update_lua_values<F: Fn(&str) -> Result<String>>(
 
     while let Some(field_match) = field_matches.next() {
       let field_name_capture = field_match
-        .captures
+        .captures()
         .iter()
         .find(|capture| capture.index == field_name_index);
       let field_value_capture = field_match
-        .captures
+        .captures()
         .iter()
         .find(|capture| capture.index == field_value_index);
       if let Some(field_name) = field_name_capture
@@ -141,7 +141,7 @@ pub fn update_lua_values<F: Fn(&str) -> Result<String>>(
 
     if !missing_fields.is_empty() {
       let penultimate_node = table_node
-        .child(table_node.child_count() as u32 - 2)
+        .child(table_node.child_count() - 2)
         .ok_or(anyhow!("Could not find closing bracket of table node."))?;
 
       if penultimate_node.kind() == "field" {
@@ -151,7 +151,7 @@ pub fn update_lua_values<F: Fn(&str) -> Result<String>>(
       }
 
       let table_closing_bracket = table_node
-        .child(table_node.child_count() as u32 - 1)
+        .child(table_node.child_count() - 1)
         .ok_or(anyhow!("Could not find closing bracket of table node."))?;
 
       let pos = table_closing_bracket.start_byte();

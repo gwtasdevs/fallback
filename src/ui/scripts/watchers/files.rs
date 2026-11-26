@@ -1,14 +1,15 @@
 use std::sync::Arc;
 
 use arc_swap::ArcSwap;
-use notify_debouncer_mini::DebouncedEvent;
+use notify_debouncer_mini::DebouncedEventBatch;
+use tokio::sync::mpsc::UnboundedReceiver;
 
 use crate::ui::scripts::models::ScriptGroup;
 
 pub async fn watch_files(
   root_script: Arc<ArcSwap<ScriptGroup>>,
   lua: Arc<mlua::Lua>,
-  mut on_file_events: tokio::sync::mpsc::UnboundedReceiver<Vec<DebouncedEvent>>,
+  mut on_file_events: UnboundedReceiver<DebouncedEventBatch>,
 ) {
   log::debug!("watching for file changes");
 
