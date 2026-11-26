@@ -138,8 +138,7 @@ impl Agent {
           }
 
           if let Some(gadget_id) = read_ptr!(gadget, .gadget_id).or(read_ptr!(summary_info, .gadget_id)) {
-            let encoded_name =
-              read_ptr!(self.thread.get_game_context(), .gadget.gadget_info[gadget_id as usize].encoded_name);
+            let encoded_name = read_ptr!(self.thread.get_game_context(), .gadget.gadget_info[gadget_id].encoded_name);
             if let Some(encoded_name) = encoded_name
               && !encoded_name.is_null()
             {

@@ -190,14 +190,21 @@ pub struct Title {
   /* +000 */ _unknown0: u32,
   /* +004 */ pub current_points: u32,
   /* +008 */ pub title_tier_id: u32,
-  /* +00c */ _unknown1: [u8; 0x1c],
-  /* +028 */
+  /* +00c */ _unknown1: u32,
+  /* +010 */ _unknown2: u32,
+  /* +014 */ _unknown3: u32,
+  /* +018 */ _unknown4: u32,
+  /* +01c */ _unknown5: u32,
+  /* +020 */ _unknown6: u32,
+  /* +024 */ _unknown7: u32,
+  /* +028 */ _unknown8: u32,
+  /* +02c */
 }
 
 #[repr(C, packed)]
 pub struct TitleTier {
   /* +000 */ _unknown0: u32,
-  /* +004 */ tier_number: u32,
+  /* +004 */ pub tier_number: u32,
   /* +008 */ pub encoded_name: *const u16,
   /* +00c */
 }
@@ -274,7 +281,7 @@ mod tests {
     assert_eq!(std::mem::size_of::<PathingTrapezoid>(), 0x30);
     assert_eq!(std::mem::size_of::<PathingPoint>(), 0x10);
     assert_eq!(std::mem::size_of::<WorldContext>(), 0x854);
-    assert_eq!(std::mem::size_of::<Title>(), 0x28);
+    assert_eq!(std::mem::size_of::<Title>(), 0x2c);
     assert_eq!(std::mem::size_of::<TitleTier>(), 0xc);
     assert_eq!(std::mem::size_of::<Npc>(), 0x30);
     assert_eq!(std::mem::size_of::<AgentInfo>(), 0x38);

@@ -188,25 +188,22 @@ impl Player {
   }
 
   pub fn get_active_title(&self) -> Option<models::player::TitleId> {
-    let player_number = read_ptr!(self.thread.get_game_context(), .character.player_number)? as usize;
+    let player_number = read_ptr!(self.thread.get_game_context(), .character.player_number)?;
     let tier_id = read_ptr!(self.thread.get_game_context(), .world.players[player_number].active_title_tier_id)?;
     let titles = read_ptr!(self.thread.get_game_context(), .world.titles)?;
 
-    for (title_id, title) in titles.iter().enumerate() {
-      if read_ptr!(title, .title_tier_id) == Some(tier_id) {
-        return models::player::TitleId::from_repr(title_id as u32);
-      }
-    }
-
-    None
+    titles
+      .into_iter()
+      .position(|title| title.title_tier_id == tier_id)
+      .and_then(|title_id| models::player::TitleId::from_repr(title_id as u32))
   }
 
   pub fn set_active_title(&self, title: models::player::TitleId) {
-    self.packet.send_sized_packet(vec![0x56, title as usize]);
+    self.packet.send_sized_packet(vec![0x58, title as usize]);
   }
 
   pub fn remove_active_title(&self) {
-    self.packet.send_packet(0x57);
+    self.packet.send_packet(0x59);
   }
 }
 

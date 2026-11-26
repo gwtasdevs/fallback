@@ -41,7 +41,7 @@ macro_rules! read_ptr {
   ($base:expr, . $field:ident [ $index:expr ]) => {{
     if let Some(arr) = read_ptr!($base, . $field) {
       let arr: $crate::gw::models::Array<_> = arr;
-      arr.get($index)
+      arr.get($index as usize)
     } else {
       None
     }
@@ -50,7 +50,7 @@ macro_rules! read_ptr {
   ($base:expr, . $field:ident [ $index:expr ] . $($rest:tt)+) => {{
     if let Some(arr) = read_ptr!($base, . $field) {
       let arr: $crate::gw::models::Array<_> = arr;
-      let next_ptr = arr.get_ptr($index);
+      let next_ptr = arr.get_ptr($index as usize);
       read_ptr!(next_ptr, . $($rest)+)
     } else {
       None
@@ -164,7 +164,7 @@ impl<T> Iterator for ArrayIterator<T> {
     }
 
     unsafe {
-      let element = &raw const *self.buffer.add(self.current_index);
+      let element = self.buffer.add(self.current_index);
       self.current_index += 1;
       Some(element)
     }
