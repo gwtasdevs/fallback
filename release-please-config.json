@@ -1,7 +1,7 @@
 {
-  "draft": true,
   "packages": {
     ".": {
+      "skip-github-release": true,
       "release-type": "rust"
     }
   }
