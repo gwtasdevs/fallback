@@ -287,7 +287,7 @@ impl Scanner {
     self.scan_from_until(&pattern, start, start - 0x300)
   }
 
-  fn scan_from_until(&self, pattern: &[Option<u8>], from: usize, until: usize) -> Result<usize> {
+  pub fn scan_from_until(&self, pattern: &[Option<u8>], from: usize, until: usize) -> Result<usize> {
     if from <= until {
       let data = unsafe { std::slice::from_raw_parts(from as *const u8, until - from) };
       Scanner::scan_data(from, data, pattern, false)
