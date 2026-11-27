@@ -33,6 +33,7 @@ use crate::{
 mod common;
 mod compass;
 pub mod config;
+mod consumables;
 mod info;
 mod scripts;
 
@@ -233,6 +234,7 @@ impl ImguiRenderLoop for RenderLoop {
       }
 
       ui.window("Fallback!")
+        .collapsed(config.window.collapsed, imgui::Condition::FirstUseEver)
         .position(config.window.position, imgui::Condition::FirstUseEver)
         .size(config.window.size, imgui::Condition::FirstUseEver)
         .build(|| {
@@ -401,6 +403,7 @@ async fn sync_modules(
 
     Ok(vec![
       Box::new(compass::init(gw.clone(), lua.clone(), cancel_token.child_token())?),
+      Box::new(consumables::init(gw.clone())),
       Box::new(info::init(gw.clone(), cancel_token.child_token())?),
       Box::new(scripts::init(
         gw.clone(),

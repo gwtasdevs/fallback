@@ -51,8 +51,6 @@ impl Module for Compass {
 
     let mut config_changed = false;
 
-    let draw_list = ui.get_background_draw_list();
-
     if !config.lock_windows {
       let _bg = ui.push_style_color(StyleColor::WindowBg, [0.0, 0.0, 0.0, 0.0]);
       let [max_x, max_y] = ui.io().display_size;
@@ -97,6 +95,7 @@ impl Module for Compass {
     }
 
     if let Some(player) = self.gw.agent.get_player() {
+      let draw_list = ui.get_background_draw_list();
       let io = ui.io();
       let [mouse_x, mouse_y] = io.mouse_pos;
       let [shift_x, shift_y] = match self.shift {
