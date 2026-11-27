@@ -42,10 +42,10 @@ impl Drop for Gw {
 pub fn init() -> Result<Gw> {
   let scanner = unsafe { Scanner::new(GetModuleHandleW(None)?)? };
 
-  let (camera, thread) = parallel![|| camera::init(&scanner), || thread::init(&scanner),]?;
+  let (camera, thread) = parallel![|| camera::init(&scanner), || thread::init(&scanner)]?;
 
   let thread = Arc::new(thread);
-  let player_agent_id_ptr = camera.camera_ptr;
+  let player_agent_id_ptr = camera.camera_ptr; // the first field is the player agent id
 
   let (packet, ui) = parallel![|| packet::init(&scanner, thread.clone()), || ui::init(
     &scanner,
@@ -63,11 +63,11 @@ pub fn init() -> Result<Gw> {
   ]?;
   let item = Arc::new(item);
 
-  let agent = parallel![|| agent::init(&scanner, player_agent_id_ptr, thread.clone(), ui.clone(), item.clone()),]?;
+  let agent = parallel![|| agent::init(&scanner, player_agent_id_ptr, thread.clone(), ui.clone(), item.clone())]?;
 
   let agent = Arc::new(agent);
 
-  let player = parallel![|| player::init(&scanner, agent.clone(), packet.clone(), thread.clone()),]?;
+  let player = parallel![|| player::init(&scanner, agent.clone(), thread.clone())]?;
 
   log::debug!("All gw modules initialized.");
 

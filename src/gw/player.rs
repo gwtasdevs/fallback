@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use windows::Win32::System::SystemInformation::GetTickCount;
 
 use crate::{
@@ -13,12 +13,13 @@ use crate::{
 
 pub struct Player {
   agent: Arc<crate::gw::agent::Agent>,
-  packet: Arc<crate::gw::packet::Packet>,
   thread: Arc<crate::gw::thread::Thread>,
 
   skill_timer_ptr: usize,
   use_skill_fn: unsafe extern "cdecl" fn(agent_id: u32, slot: u32, target_agent_id: u32, call_target: u32) -> (),
   move_to_fn: unsafe extern "cdecl" fn(pos: *const models::Position) -> (),
+  set_title_fn: unsafe extern "cdecl" fn(title_id: u32) -> (),
+  remove_title_fn: unsafe extern "cdecl" fn() -> (),
 }
 
 impl Player {
@@ -198,35 +199,42 @@ impl Player {
       .and_then(|title_id| models::player::TitleId::from_repr(title_id as u32))
   }
 
-  pub fn set_active_title(&self, title: models::player::TitleId) {
-    self.packet.send_sized_packet(vec![0x58, title as usize]);
+  pub fn set_active_title(&self, title_id: models::player::TitleId) {
+    let func = self.set_title_fn;
+    self.thread.fire_and_forget(move || {
+      unsafe { func(title_id as u32) };
+    });
   }
 
   pub fn remove_active_title(&self) {
-    self.packet.send_packet(0x59);
+    let func = self.remove_title_fn;
+    self.thread.fire_and_forget(move || {
+      unsafe { func() };
+    });
   }
 }
 
 pub fn init(
   scanner: &Scanner,
   agent: Arc<crate::gw::agent::Agent>,
-  packet: Arc<crate::gw::packet::Packet>,
   thread: Arc<crate::gw::thread::Thread>,
 ) -> Result<Player> {
-  let (skill_timer_ptr, use_skill, move_to) = parallel![
+  let (skill_timer_ptr, use_skill_fn, move_to_fn, (set_title_fn, remove_title_fn)) = parallel![
     || find_skill_timer_pointer(scanner).context("Could not find skill_timer pointer"),
     || find_use_skill_function(scanner).context("Could not find use_skill function."),
     || find_move_to_function(scanner).context("Could not find move_to function."),
+    || find_title_functions(scanner).context("Could not find set_title and remove_title functions."),
   ]?;
 
   Ok(Player {
     agent,
-    packet,
     thread,
 
     skill_timer_ptr,
-    use_skill_fn: unsafe { std::mem::transmute(use_skill) },
-    move_to_fn: unsafe { std::mem::transmute(move_to) },
+    use_skill_fn: unsafe { std::mem::transmute(use_skill_fn) },
+    move_to_fn: unsafe { std::mem::transmute(move_to_fn) },
+    set_title_fn: unsafe { std::mem::transmute(set_title_fn) },
+    remove_title_fn: unsafe { std::mem::transmute(remove_title_fn) },
   })
 }
 
@@ -291,12 +299,61 @@ fn find_move_to_function(scanner: &Scanner) -> Result<usize> {
 
   let pattern = pattern![
     0x50,             // PUSH EAX
-    0xe8, ?, ?, ?, ?, // CALL move_to_function
+    0xe8, ?, ?, ?, ?, // CALL move_to_fn
     0x83, 0xc4, 0x0c, // ADD ESP, 0xc
   ];
   let address = scanner.scan_from(&pattern, address)?;
-  let move_to_function = scanner.follow_call(address + 1)?;
+  let move_to_fn = scanner.follow_call(address + 1)?;
 
-  log::debug!("Scanned move_to_function: 0x{:08X}", move_to_function);
-  Ok(move_to_function)
+  log::debug!("Scanned move_to_fn: 0x{:08X}", move_to_fn);
+  Ok(move_to_fn)
+}
+
+fn find_title_functions(scanner: &Scanner) -> Result<(usize, usize)> {
+  let addresses = scanner.scan_for_assertions(
+    Some(r"P:\Code\Gw\Ui\Game\Attributes\AttribTitles.cpp"),
+    Some(r"!*hdr.param"),
+  )?;
+
+  for address in addresses {
+    let start = scanner.scan_back_to_function_start(address)?;
+
+    let pattern = pattern![
+      0x83, 0xe8, ?,                // SUB EAX, ...
+      0x83, 0xf8, ?,                // CMP EAX, title_value
+      0x0f, 0x87, ?, ?, ?, ?,       // JA ...
+      0x0f, 0xb6, 0x80, ?, ?, ?, ?, // MOVZX EAX, byte ptr [EAX + byte_table]
+      0xff, 0x24, 0x85,             // JMP [EAX*4 + switch_table]
+    ];
+
+    if let Ok(address) = scanner.scan_from_until(&pattern, start, address) {
+      let title_value = unsafe { ((address + 5) as *const u8).read_unaligned() };
+
+      let byte_table = unsafe { ((address + pattern.len() - 7) as *const *const u8).read_unaligned() };
+
+      let switch_case = unsafe { byte_table.add(title_value as usize).read_unaligned() };
+
+      let switch_table = unsafe { ((address + pattern.len()) as *const *const usize).read_unaligned() };
+      let address = unsafe { switch_table.add(switch_case as usize).read_unaligned() };
+
+      let pattern = pattern![
+        0xe8, ?, ?, ?, ?, // CALL set_title_fn
+        0x83, 0xc4, 0x04, // ADD ESP, 0x4
+        0x5e,             // POP ESI
+        0x8b, 0xe5,       // MOV ESP, EBP
+        0x5d,             // POP EBP
+        0xc3,             // RET
+        0xe8,             // CALL remove_title_fn
+      ];
+
+      let address = scanner.scan_from(&pattern, address)?;
+
+      let set_title_fn = scanner.follow_call(address)?;
+      let remove_title_fn = scanner.follow_call(address + pattern.len() - 1)?;
+
+      return Ok((set_title_fn, remove_title_fn));
+    }
+  }
+
+  bail!("Could not find the correct assertion.")
 }
