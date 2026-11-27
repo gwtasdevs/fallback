@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/gwtasdevs/fallback/compare/fallback-v0.4.1...fallback-v0.4.2) (2026-11-27)
+
+
+### Bug Fixes
+
+* **gw/player:** scan for title functions instead of hardcoding the pa… ([#54](https://github.com/gwtasdevs/fallback/issues/54)) ([f319341](https://github.com/gwtasdevs/fallback/commit/f31934140ec9e173b92bfdee5c439b51ff63aad0))
+
 ## [0.4.1](https://github.com/gwtasdevs/fallback/compare/fallback-v0.4.0...fallback-v0.4.1) (2026-11-26)
 
 
