@@ -142,6 +142,7 @@ impl Module for Info {
     let mut config_changed = false;
 
     ui.window("Info")
+      .collapsed(config.info.collapsed, imgui::Condition::FirstUseEver)
       .position(config.info.position, imgui::Condition::FirstUseEver)
       .size(config.info.size, imgui::Condition::FirstUseEver)
       .build(|| {
